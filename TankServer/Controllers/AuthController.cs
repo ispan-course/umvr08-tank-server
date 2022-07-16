@@ -3,6 +3,7 @@ using System.Text;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TankServer.Models;
+using TankServer.Requests;
 using TankServer.Responses;
 
 namespace TankServer.Controllers;
@@ -18,12 +19,12 @@ public class AuthController : ControllerBase
     _context = context;
   }
 
-  // Get: api/auth/login
-  [HttpGet("login")]
-  public async Task<PhotonResult> Login(string user, string pass)
+  // POST: api/auth/login
+  [HttpPost("login")]
+  public async Task<PhotonResult> Login([FromBody] LoginRequest request)
   {
     // 判斷參數是否有值
-    if (string.IsNullOrWhiteSpace(user) || string.IsNullOrWhiteSpace(pass))
+    if (string.IsNullOrWhiteSpace(request.user) || string.IsNullOrWhiteSpace(request.pass))
     {
       return new PhotonResult
       {
@@ -33,11 +34,11 @@ public class AuthController : ControllerBase
     }
 
     var player = await _context.Players
-      .Where(p => p.Name == user)
+      .Where(p => p.Name == request.user)
       .FirstOrDefaultAsync();
 
     // 產生 password 的 hash 值
-    var passwordHash = GetSha256Hash(pass);
+    var passwordHash = GetSha256Hash(request.pass);
 
     if (player != null)
     {
@@ -55,7 +56,7 @@ public class AuthController : ControllerBase
       {
         ResultCode = 1,
         UserId = player.Id,
-        Nickname = user,
+        Nickname = player.Nickname,
         AuthCookie = new Dictionary<string, object>
         {
           { "SecretKey", "SecretValue" },
@@ -64,6 +65,9 @@ public class AuthController : ControllerBase
         },
         Data = new Dictionary<string, object>
         {
+          { "nickname", player.Nickname ?? player.Name ?? "" },
+          { "Age", player.Age },
+          { "Address", player.Address ?? "" },
           { "Weapon", "Gun" },
           { "Items", new List<int> { 1, -5, 9 } }
         }
@@ -73,8 +77,11 @@ public class AuthController : ControllerBase
     // 如果玩家不存在，則幫他註冊
     player = new Player
     {
-      Name = user,
-      Password = passwordHash
+      Name = request.user,
+      Password = passwordHash,
+      Nickname = request.nickname,
+      Age = request.age,
+      Address = request.address,
     };
     await _context.Players.AddAsync(player);
 
@@ -85,7 +92,7 @@ public class AuthController : ControllerBase
     {
       ResultCode = 1,
       UserId = player.Id,
-      Nickname = user,
+      Nickname = player.Nickname,
       AuthCookie = new Dictionary<string, object>
       {
         { "SecretKey", "SecretValue" },
@@ -94,6 +101,9 @@ public class AuthController : ControllerBase
       },
       Data = new Dictionary<string, object>
       {
+        { "nickname", player.Nickname ?? player.Name ?? "" },
+        { "Age", player.Age },
+        { "Address", player.Address ?? "" },
         { "Weapon", "Gun" },
         { "Items", new List<int> { 1, -5, 9 } }
       }
