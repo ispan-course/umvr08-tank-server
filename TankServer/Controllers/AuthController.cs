@@ -54,7 +54,19 @@ public class AuthController : ControllerBase
       return new PhotonResult
       {
         ResultCode = 1,
-        UserId = player.Id
+        UserId = player.Id,
+        Nickname = user,
+        AuthCookie = new Dictionary<string, object>
+        {
+          { "SecretKey", "SecretValue" },
+          { "Check", true },
+          { "AnotherKey", 1000 },
+        },
+        Data = new Dictionary<string, object>
+        {
+          { "Weapon", "Gun" },
+          { "Items", new List<int> { 1, -5, 9 } }
+        }
       };
     }
 
@@ -72,7 +84,19 @@ public class AuthController : ControllerBase
     return new PhotonResult
     {
       ResultCode = 1,
-      UserId = player.Id
+      UserId = player.Id,
+      Nickname = user,
+      AuthCookie = new Dictionary<string, object>
+      {
+        { "SecretKey", "SecretValue" },
+        { "Check", true },
+        { "AnotherKey", 1000 },
+      },
+      Data = new Dictionary<string, object>
+      {
+        { "Weapon", "Gun" },
+        { "Items", new List<int> { 1, -5, 9 } }
+      }
     };
   }
 
